@@ -1,0 +1,40 @@
+{
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "NodeNext",
+    "moduleResolution": "NodeNext",
+    
+    // Keep the rest of your settings...
+    "lib": ["ES2022"],
+    "types": ["node"],
+    "strict": false,
+    "noImplicitAny": false,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", ".mastra", "src/tests", "scripts", "uploads"]
+}
+
+
+// {
+//   "compilerOptions": {
+//     "target": "ES2022",
+//     "module": "ES2022",
+//     "moduleResolution": "bundler",
+//     "lib": ["ES2022"],
+//     "types": ["node"],
+
+//     "strict": false,
+//     "noImplicitAny": false,
+//     "skipLibCheck": true,
+
+//     "esModuleInterop": true,
+//     "outDir": "dist",
+//     "rootDir": "src"
+//   },
+//   "include": ["src/**/*"],
+//   "exclude": ["node_modules", "dist", ".mastra", "src/tests", "scripts", "uploads"]
+// }

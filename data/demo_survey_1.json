@@ -1,0 +1,57 @@
+{
+  "id": "demo_survey_1",
+  "name": "Customer Satisfaction Demo Survey",
+  "mode": "manual",
+  "questions": [
+    {
+      "id": "q1",
+      "text": "How satisfied are you with our service?",
+      "options": [
+        "Very satisfied",
+        "Satisfied",
+        "Neutral",
+        "Dissatisfied",
+        "Very dissatisfied"
+      ],
+      "type": "list",
+      "sectionTitle": "Satisfaction"
+    },
+    {
+      "id": "q2",
+      "text": "Would you recommend us to a friend?",
+      "options": ["Yes", "No"],
+      "type": "button"
+    },
+    {
+      "id": "q3",
+      "text": "What did you like most about our service?",
+      "type": "text",
+      "placeholder": "Type your answer here..."
+    },
+    {
+      "id": "q4",
+      "text": "Which of our branches have you visited?",
+      "options": [
+        "Main Branch",
+        "Airport Branch",
+        "Market Branch",
+        "Online Only"
+      ],
+      "type": "list",
+      "sectionTitle": "Branches"
+    },
+    {
+      "id": "q5",
+      "text": "Rate our staff friendliness",
+      "options": ["Excellent", "Good", "Average", "Poor"],
+      "type": "list",
+      "sectionTitle": "Staff"
+    },
+    {
+      "id": "q6",
+      "text": "Would you like to be contacted for follow-up?",
+      "options": ["Yes", "No"],
+      "type": "button"
+    }
+  ]
+}

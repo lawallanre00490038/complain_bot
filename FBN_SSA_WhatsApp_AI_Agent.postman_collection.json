@@ -1,0 +1,566 @@
+{
+  "info": {
+    "name": "FBN SSA XOF – WhatsApp AI Agent API",
+    "_postman_id": "fbn-ssa-xof-whatsapp-ai-agent",
+    "description": "Full endpoint collection for the FBNBank Senegal WhatsApp AI Agent & Survey API.\n\nAuthentication:\n- Admin routes (/admin/*): set X-Api-Key header to the value of ADMIN_API_KEY.\n- Webhook routes: no auth (called by Meta).\n- Agent/KB routes: no auth (internal use).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:3000", "type": "string" },
+    { "key": "admin_api_key", "value": "REPLACE_WITH_ADMIN_API_KEY", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/",
+            "description": "Liveness check. Returns {message:'I am alive!'}"
+          }
+        },
+        {
+          "name": "Readiness Check",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/health",
+            "description": "Returns 200 ready or 503 starting."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhook",
+      "item": [
+        {
+          "name": "WhatsApp Webhook – Verify (GET)",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/webhook/whatsapp?hub.mode=subscribe&hub.verify_token=REPLACE&hub.challenge=test123",
+            "description": "Meta webhook verification handshake. Returns the challenge string on success."
+          }
+        },
+        {
+          "name": "WhatsApp Webhook – Inbound Event (POST)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/webhook/whatsapp",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"object\": \"whatsapp_business_account\",\n  \"entry\": [{\n    \"id\": \"WHATSAPP_BUSINESS_ACCOUNT_ID\",\n    \"changes\": [{\n      \"value\": {\n        \"messaging_product\": \"whatsapp\",\n        \"metadata\": { \"display_phone_number\": \"15550000000\", \"phone_number_id\": \"PHONE_NUMBER_ID\" },\n        \"contacts\": [{ \"profile\": { \"name\": \"Test User\" }, \"wa_id\": \"2348012345678\" }],\n        \"messages\": [{\n          \"from\": \"2348012345678\",\n          \"id\": \"wamid.test001\",\n          \"timestamp\": \"1700000000\",\n          \"text\": { \"body\": \"Hello\" },\n          \"type\": \"text\"\n        }]\n      },\n      \"field\": \"messages\"\n    }]\n  }]\n}"
+            },
+            "description": "Simulates an inbound WhatsApp message from Meta."
+          }
+        },
+        {
+          "name": "Meta Flow Data Endpoint (POST)",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/webhook/meta-flow-data",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"encrypted_flow_data\": \"<base64>\",\n  \"encrypted_aes_key\": \"<base64>\",\n  \"initial_vector\": \"<base64>\"\n}"
+            },
+            "description": "Receives encrypted WhatsApp Flow form submissions from Meta."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Agent",
+      "item": [
+        {
+          "name": "Chat with Agent",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/agent/chat",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Bonjour, j'ai un problème avec mon compte\",\n  \"phone\": \"+221770000000\",\n  \"contactName\": \"Amadou\"\n}"
+            },
+            "description": "Send a test message to the engagement agent."
+          }
+        },
+        {
+          "name": "Reset All Agent Memory",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/agent/reset",
+            "description": "Clears all conversation threads across all agents."
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin – AI/Manual Survey",
+      "item": [
+        {
+          "name": "Create Survey",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/survey",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": \"csat-test-001\",\n  \"name\": \"Test CSAT Survey\",\n  \"mode\": \"manual\",\n  \"questions\": [\n    {\n      \"id\": \"overall_rating\",\n      \"text\": \"How would you rate our overall service?\",\n      \"type\": \"list\",\n      \"options\": [\"Very Satisfied\", \"Satisfied\", \"Neutral\", \"Dissatisfied\", \"Very Dissatisfied\"]\n    },\n    {\n      \"id\": \"comment\",\n      \"text\": \"Any comments?\",\n      \"type\": \"text\"\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Surveys",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/surveys",
+              "query": [
+                { "key": "mode", "value": "manual", "disabled": true },
+                { "key": "archived", "value": "false", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Send Survey to Single Customer",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/send-survey",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"2348123456789\",\n  \"surveyId\": \"csat-test-001\",\n  \"topic\": \"Customer Satisfaction\",\n  \"mode\": \"manual\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Bulk Send Survey",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/bulk-send-survey",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"surveyId\": \"csat-test-001\",\n  \"topic\": \"Customer Satisfaction\",\n  \"mode\": \"manual\",\n  \"customers\": [\"2348123456789\", \"2348012345678\"]\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Survey Responses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/survey-responses",
+              "query": [
+                { "key": "surveyId", "value": "csat-test-001", "disabled": true },
+                { "key": "surveyed", "value": "true", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Get Survey Participants",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/survey/:surveyId/participants",
+              "variable": [{ "key": "surveyId", "value": "csat-test-001" }],
+              "query": [{ "key": "status", "value": "completed", "disabled": true }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Archive Survey",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/survey/:surveyId/archive",
+              "variable": [{ "key": "surveyId", "value": "csat-test-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Unarchive Survey",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/admin/survey/:surveyId/unarchive",
+              "variable": [{ "key": "surveyId", "value": "csat-test-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Delete Survey (Permanent)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/survey/:surveyId",
+              "variable": [{ "key": "surveyId", "value": "csat-test-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin – Meta Survey",
+      "item": [
+        {
+          "name": "Create Meta Flow Survey",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/meta-survey",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Post-Transaction Survey\",\n  \"description\": \"Help us improve your banking experience.\",\n  \"surveyId\": \"csat-meta-001\",\n  \"thankYouText\": \"Thank you for your feedback!\",\n  \"autoPublish\": false,\n  \"questions\": [\n    {\n      \"id\": \"overall_rating\",\n      \"text\": \"How would you rate our overall service?\",\n      \"type\": \"list\",\n      \"options\": [\"Very Satisfied\", \"Satisfied\", \"Neutral\", \"Dissatisfied\", \"Very Dissatisfied\"],\n      \"required\": true\n    }\n  ]\n}"
+            }
+          }
+        },
+        {
+          "name": "List Meta Flow Surveys",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey",
+              "query": [
+                { "key": "archived", "value": "false", "disabled": true },
+                { "key": "limit", "value": "50", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Get Meta Flow Survey",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Publish Meta Flow",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId/publish",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Deprecate Meta Flow",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId/deprecate",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Send Meta Flow Survey",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/meta-survey/send",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"2349013360717\",\n  \"flowId\": \"1234567890\",\n  \"cta\": \"Take Survey\",\n  \"bodyText\": \"Please help us improve by completing a 1-minute survey.\",\n  \"headerText\": \"Quick Survey\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Meta Flow Responses",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/responses",
+              "query": [
+                { "key": "flowId", "value": "1234567890", "disabled": true },
+                { "key": "limit", "value": "50", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Delete Draft Flow",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Delete Published Flow (archive)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId/delete-published/archived",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Delete Flow + Responses (purge)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/meta-survey/:flowId/delete-with-responses/purge",
+              "variable": [{ "key": "flowId", "value": "1234567890" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin – Escalation",
+      "item": [
+        {
+          "name": "Get Escalations",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/escalations",
+              "query": [
+                { "key": "status", "value": "pending", "disabled": true },
+                { "key": "archived", "value": "false", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Get Archived Escalations",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/admin/escalations/archived",
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Send Human Agent Message (ticket)",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/message",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": \"+2348012345678\",\n  \"message\": \"Hello, this is Ada from FBNBank support. I am now handling your request.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Send Spontaneous Message",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/admin/escalation/message",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"to\": [\"+2348012345678\"],\n  \"message\": \"Our support team will contact you shortly.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Update Escalation Status",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/status",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Api-Key", "value": "{{admin_api_key}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"ticketStatus\": \"completed\",\n  \"sendMessage\": true,\n  \"to\": \"+2348012345678\",\n  \"message\": \"Your issue has been resolved successfully.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Release Human Handoff",
+          "request": {
+            "method": "POST",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/release",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Get Escalation Messages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/messages?limit=50",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }],
+              "query": [{ "key": "limit", "value": "50" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Archive Escalation",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Unarchive Escalation",
+          "request": {
+            "method": "PATCH",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/unarchive",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Permanently Delete Escalation (purge)",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/admin/escalation/:ticketId/purge",
+              "variable": [{ "key": "ticketId", "value": "TICKET-001" }]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Admin – Chat History",
+      "item": [
+        {
+          "name": "Get Chat Messages",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/chat-history/messages",
+              "query": [
+                { "key": "threadId", "value": "2348012345678", "disabled": true },
+                { "key": "role", "value": "AI", "disabled": true },
+                { "key": "limit", "value": "50", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        },
+        {
+          "name": "Get Chat Threads",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/admin/chat-history/threads",
+              "query": [
+                { "key": "limit", "value": "50", "disabled": true },
+                { "key": "offset", "value": "0", "disabled": true }
+              ]
+            },
+            "header": [{ "key": "X-Api-Key", "value": "{{admin_api_key}}" }]
+          }
+        }
+      ]
+    },
+    {
+      "name": "Knowledge Base",
+      "item": [
+        {
+          "name": "Upload Document",
+          "request": {
+            "method": "POST",
+            "url": "{{base_url}}/api/kb/upload",
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                { "key": "files", "type": "file", "src": "" },
+                { "key": "title", "value": "Optional document title", "type": "text" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "List Documents",
+          "request": {
+            "method": "GET",
+            "url": "{{base_url}}/api/kb/docs"
+          }
+        },
+        {
+          "name": "Get Document by ID",
+          "request": {
+            "method": "GET",
+            "url": {
+              "raw": "{{base_url}}/api/kb/docs/:docId",
+              "variable": [{ "key": "docId", "value": "REPLACE_WITH_DOC_ID" }]
+            }
+          }
+        },
+        {
+          "name": "Delete Document",
+          "request": {
+            "method": "DELETE",
+            "url": {
+              "raw": "{{base_url}}/api/kb/docs/:docId",
+              "variable": [{ "key": "docId", "value": "REPLACE_WITH_DOC_ID" }]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}
