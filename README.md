@@ -1,8 +1,8 @@
-# FBNBank Ghana/Senegal WhatsApp Intelligence Platform
+# Customer Complaints WhatsApp Intelligence Platform
 
 <p align="center">
   <a href="https://drive.google.com/file/d/1Pm5VX9laf0NBxFQMu83chD8AjeYGXh3B/view?usp=sharing" target="_blank" rel="noopener noreferrer">
-    <img src="./demo-preview.gif" alt="FBNBank Ghana/Senegal WhatsApp Intelligence Platform Demo" width="900" />
+    <img src="./demo-preview.gif" alt="WhatsApp Intelligence Platform Demo" width="900" />
   </a>
 </p>
 
@@ -10,7 +10,7 @@
   <strong>Click the preview above to watch the full demo video.</strong>
 </p>
 
-A production-minded WhatsApp customer engagement and survey automation system for FBNBank Ghana/Senegal, built with TypeScript, PostgreSQL, and the Meta WhatsApp Business API.
+A production-minded WhatsApp customer engagement and survey automation system, built with TypeScript, PostgreSQL, and the Meta WhatsApp Business API.
 
 This project is a strong example of applied AI in a regulated enterprise environment: it combines agentic conversation, retrieval-augmented generation, multilingual support, workflow automation, and human escalation into one coherent customer service solution.
 
